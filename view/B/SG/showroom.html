@@ -1,0 +1,102 @@
+<script src="../checkCountry.js"></script>
+<html>
+    <script src="../../header.js"></script>
+    <head>
+    <style>
+    .showroom-wrapper { position: relative; display: inline-block; width: 100%; margin-bottom: 40px; }
+    .showroom-img { width: 100%; display: block; border-radius: 4px; }
+    
+    .hotspot {
+        position: absolute; width: 24px; height: 24px;
+        background: rgba(255, 255, 255, 0.85); border: 2px solid #0088cc;
+        border-radius: 50%; cursor: pointer; transform: translate(-50%, -50%); z-index: 10;
+    }
+
+    .hotspot-tooltip {
+        visibility: hidden; 
+        position: absolute; 
+        bottom: 80%; 
+        left: 50%;
+        transform: translateX(-50%); 
+        background: transparent; 
+        padding-bottom: 25px; /* Bridge for hover stability */
+        width: 260px; /* Slightly wider for better centering */
+        z-index: 100;
+        cursor: default;
+    }
+
+    .hotspot:hover .hotspot-tooltip { visibility: visible; }
+
+    /* The main card container */
+    .tooltip-card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+        border-bottom: 3px solid #0088cc;
+        overflow: hidden;
+        display: flex;
+        align-items: stretch;
+    }
+
+    .tooltip-link { text-decoration: none !important; color: inherit; display: flex; width: 100%; }
+
+    /* Centering the content block */
+    .tooltip-content {
+        padding: 15px;
+        flex-grow: 1;
+        text-align: center; /* Centers all text */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .tooltip-content h5 { margin: 0 0 8px 0; color: #0088cc; font-weight: 700; font-size: 15px; }
+    .tooltip-content p { font-size: 12px; margin-bottom: 10px; color: #555; line-height: 1.4; }
+    
+    .price-box { 
+        font-size: 16px; 
+        font-weight: bold; 
+        margin: 5px 0; 
+        color: #333; 
+    }
+
+    .dim-box { 
+        margin-top: 8px;
+        font-size: 11px; 
+        color: #888; 
+        border-top: 1px solid #eee; 
+        padding-top: 8px; 
+    }
+
+    /* Side arrow bar */
+    .tooltip-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px; /* Fixed width ensures text centering isn't offset */
+        border-left: 1px solid #eee;
+        background-color: #fcfcfc;
+        transition: all 0.2s ease;
+        color: #0088cc;
+        font-size: 18px;
+    }
+
+    .tooltip-link:hover .tooltip-arrow {
+        background-color: #0088cc;
+        color: white;
+    }
+</style>
+    </head>
+    <body>
+        <script src="menu2.js"></script>
+        <div role="main" class="main">
+            <section class="page-top">
+                <div class="container"><h2>Virtual Showrooms</h2></div>
+            </section>
+            <div class="container" id="gallery-root"></div>
+        </div>
+
+        <script src="../showroom.js"></script>
+        <script src="../footer.js"></script>
+    </body>
+</html>

@@ -1,0 +1,35 @@
+.showroom-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+#showroom-img {
+    max-width: 100%;
+    display: block;
+}
+
+.hotspot {
+    position: absolute;
+    width: 24px; height: 24px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 2px solid #0058ab;
+    border-radius: 50%;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+}
+
+.tooltip {
+    display: none;
+    position: absolute;
+    bottom: 30px; left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    width: 220px; padding: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    z-index: 100;
+    font-family: sans-serif;
+}
+
+.hotspot:hover .tooltip {
+    display: block;
+}
