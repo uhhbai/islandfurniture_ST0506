@@ -253,6 +253,17 @@
                 }).catch(function (error) {
                     console.log(error);
                 });
+
+            // Clear success/error message when switching away from Overview (Personal Information) tab
+            var tabLinks = document.querySelectorAll('.nav-tabs a[data-toggle="tab"]');
+            tabLinks.forEach(function (link) {
+                link.addEventListener('click', function () {
+                    var targetHref = link.getAttribute('href');
+                    if (targetHref && targetHref !== '#overview') {
+                        clearProfileMessage();
+                    }
+                });
+            });
         }, false);
 
         function addWorkDays(startDate, days) {
@@ -275,9 +286,57 @@
         }
 
         async function submitForm() {
+            var oldPassword = document.getElementById('oldPassword').value;
+            var password = document.getElementById("password").value;
+            var repassword = document.getElementById("repassword").value;
             var ok = true;
             console.log(oldPassword)
             if (document.getElementById("profileForm").checkValidity()) {
+                if (oldPassword.trim() != "" && password.trim() != "" && repassword.trim() != "") {
+                    var memberData = {
+                        id: member.id,
+                        password: oldPassword
+                    };
+
+                    await fetch(new Request('/api/verifyPassword', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: 'Bearer ' + authToken
+                        },
+                        body: JSON.stringify(memberData)
+                    }))
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            if (data.success) {
+                                if (password != repassword) {
+                                    // Passwords don't match
+                                    document.getElementById("password").style.borderColor = "#E34234";
+                                    document.getElementById("repassword").style.borderColor = "#E34234";
+                                    alert("Passwords do not match. Please key again.");
+                                    ok = false;
+                                } else if (password.trim().length != 0 && password.trim().length < 8) {
+                                    // Password too short
+                                    alert("Passwords too short. At least 8 characters.");
+                                    ok = false;
+                                }
+                            } else {
+                                // Old password is incorrect
+                                alert("Old password is incorrect.");
+                                ok = false;
+                            }
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+
+                } else if (oldPassword.trim() != "" && password.trim() != "" && repassword.trim() != "") {
+                    // Some password fields filled, but not all
+                    alert("To change password, please fill in all password fields.");
+                    ok = false;
+                }
 
                 if (ok) {
                     var data = {
@@ -312,6 +371,11 @@
                             sessionStorage.setItem("memberEmail", data.email);
                             sessionStorage.setItem("memberName", data.name);
 
+                            // ✅ Clear password fields (security best practice)
+                            document.getElementById("oldPassword").value = "";
+                            document.getElementById("password").value = "";
+                            document.getElementById("repassword").value = "";
+
                             // ✅ Redirect with success message
                             var url = window.location.origin + window.location.pathname;
                             window.location.href = url + '?goodMsg=Successfully Updated!';
@@ -324,6 +388,102 @@
                 }
             }
         }
+        async function changePassword() {
+            var oldPassword = document.getElementById('oldPassword').value;
+            var password = document.getElementById("password").value;
+            var repassword = document.getElementById("repassword").value;
+
+            if (!oldPassword.trim() || !password.trim() || !repassword.trim()) {
+                alert("Please fill in all password fields.");
+                return;
+            }
+            if (password !== repassword) {
+                document.getElementById("password").style.borderColor = "#E34234";
+                document.getElementById("repassword").style.borderColor = "#E34234";
+                alert("Passwords do not match. Please key again.");
+                return;
+            }
+            if (password.trim().length < 8) {
+                alert("Password must be at least 8 characters.");
+                return;
+            }
+
+            var memberData = { id: member.id, password: oldPassword };
+            try {
+                var verifyRes = await fetch(new Request('/api/verifyPassword', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + authToken
+                    },
+                    body: JSON.stringify(memberData)
+                }));
+                var verifyData = await verifyRes.json();
+                if (!verifyData.success) {
+                    alert("Old password is incorrect.");
+                    return;
+                }
+
+                var updatePayload = {
+                    id: member.id,
+                    email: member.email,
+                    name: member.name,
+                    phone: member.phone,
+                    country: member.country || member.city,
+                    address: member.address,
+                    securityQuestion: member.securityQuestion,
+                    securityAnswer: member.securityAnswer,
+                    age: member.age,
+                    income: member.income,
+                    sla: member.sla,
+                    password: password.trim()
+                };
+
+                var updateRes = await fetch(new Request('/api/updateMember', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + authToken
+                    },
+                    body: JSON.stringify(updatePayload)
+                }));
+                var updatedMember = await updateRes.json();
+
+                sessionStorage.setItem("member", JSON.stringify(updatedMember));
+                sessionStorage.setItem("memberEmail", updatedMember.email);
+                sessionStorage.setItem("memberName", updatedMember.name);
+
+                document.getElementById("oldPassword").value = "";
+                document.getElementById("password").value = "";
+                document.getElementById("repassword").value = "";
+                document.getElementById("password").style.borderColor = "";
+                document.getElementById("repassword").style.borderColor = "";
+
+                var url = window.location.origin + window.location.pathname;
+                window.location.href = url + '?goodMsg=Password changed successfully!';
+            } catch (error) {
+                console.log(error);
+                alert("Unable to update password. Please try again.");
+            }
+        }
+
+        function clearProfileMessage() {
+            var goodDiv = document.getElementById("goodDiv");
+            var errDiv = document.getElementById("errDiv");
+            if (goodDiv) {
+                goodDiv.style.display = "none";
+                goodDiv.innerHTML = "";
+            }
+            if (errDiv) {
+                errDiv.style.display = "none";
+                errDiv.innerHTML = "";
+            }
+            var url = new URL(window.location.href);
+            url.searchParams.delete("goodMsg");
+            url.searchParams.delete("errMsg");
+            history.replaceState({}, document.title, url.pathname + (url.search || ""));
+        }
+
         function pdpaWindow() {
             var myWindow = window.open("pdpa.html");
         }
@@ -346,7 +506,14 @@
                     <div class="tabs">
                         <ul class="nav nav-tabs">
                             <li class="active">
-                                <a href="#overview" data-toggle="tab"><i class="icon icon-user"></i> Overview</a>
+                                <a href="#overview" data-toggle="tab">
+                                    <i class="icon icon-user"></i> Overview
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#changePassword" data-toggle="tab">
+                                    <i class="icon icon-lock"></i> Change Password
+                                </a>
                             </li>
                             <li>
                                 <a href="#loyaltyProgram" data-toggle="tab">Loyalty Program</a>
@@ -658,20 +825,6 @@
                                             onclick="pdpaWindow()" style="cursor: pointer">personal data protection
                                             policy.</a>
                                     </div>
-                                    <hr class="more-spaced " />
-                                    <h4>Change Password</h4>
-                                    <div class="form-group">
-                                        <label>Old Password (leave blank unless setting a new password).</label>
-                                        <input class="form-control" type="password" id="oldPassword">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>New Password<br />Password to be at least 8 characters long.</label>
-                                        <input class="form-control" type="password" id="password">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Re-enter New Password</label>
-                                        <input class="form-control" type="password" id="repassword">
-                                    </div>
                                     <div class="panel-footer" style="padding-bottom: 0px;">
                                         <div class="row">
                                             <div class="form-group">
@@ -683,6 +836,30 @@
                                     </div>
                                 </form>
                             </div>
+                            <div id="changePassword" class="tab-pane">
+                            <h4>Change Password</h4>
+
+                            <form onsubmit="return false;" id="passwordForm">
+                                <div class="form-group">
+                                    <label>Old Password</label>
+                                    <input class="form-control" type="password" id="oldPassword" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>New Password (min 8 characters)</label>
+                                    <input class="form-control" type="password" id="password" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Re-enter New Password</label>
+                                    <input class="form-control" type="password" id="repassword" />
+                                </div>
+
+                                <div class="panel-footer">
+                                    <input type="submit" onclick="changePassword()" value="Change Password" class="btn btn-primary" />
+                                </div>
+                            </form>
+                        </div>
                             <div id="loyaltyProgram" class="tab-pane">
                                 <h4>Loyalty Program</h4>
                             </div>
