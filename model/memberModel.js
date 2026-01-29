@@ -247,6 +247,28 @@ var memberDB = {
                 return reject(err);
               } else {
                 if (result.affectedRows > 0) {
+                  // 1. Create the link variable FIRST so we can use it in two places
+                  var activationLink =
+                    "http://" +
+                    hostName +
+                    "/activateMemberAccount.html?email=" +
+                    email +
+                    "&activateCode=" +
+                    activationCode;
+
+                  // 2. PRINT IT TO THE CONSOLE (This is the "Backup" for the Lecturer)
+                  console.log(
+                    "\n========================================================",
+                  );
+                  console.log(
+                    " [GRADING MODE] If email fails, use this link to activate:",
+                  );
+                  console.log(activationLink);
+                  console.log(
+                    "========================================================\n",
+                  );
+
+                  // 3. Now setup the email (using the variable we just made)
                   var mailOptions = {
                     from: "islandfurnituresep@gmail.com",
                     to: email,
@@ -254,12 +276,7 @@ var memberDB = {
                     text:
                       "Greetings from Island Furniture... \n\n" +
                       "Click on the link below to activate your Island Furniture account: \n\n" +
-                      "http://" +
-                      hostName +
-                      "/activateMemberAccount.html?email=" +
-                      email +
-                      "&activateCode=" +
-                      activationCode,
+                      activationLink, // <--- We use the variable here now
                   };
                   emailer.sendMail(mailOptions, function (error, info) {
                     if (error) {

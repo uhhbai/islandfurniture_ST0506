@@ -10,6 +10,11 @@ document.write('\
         else {\
             document.getElementById("menuLoggedOut").setAttribute("style", "display:none");\
             document.getElementById("menuLoggedIn").setAttribute("style", "display:block");\
+            var welcomeText = sessionStorage.getItem("memberName");\
+            if(welcomeText == "null") {\
+                welcomeText = "Guest";\
+            }\
+            document.getElementById("memberName").innerHTML = "Welcome " + welcomeText + "!";\
         }\
         document.getElementById("tableDeskLink").setAttribute("href", "/B/' + countryPrefix + '/furnitureCategory.html?cat=" + encodeURIComponent("Tables & Desks"));\
         document.getElementById("bedMattressLink").setAttribute("href", "/B/' + countryPrefix + '/furnitureCategory.html?cat=" + encodeURIComponent("Beds & Mattresses"));\
@@ -52,6 +57,7 @@ document.write('\
         <div id="menuLoggedIn" style="display: none;">\
             <nav>\
                 <ul class="nav nav-pills nav-top">\
+                    <li><a id="memberName"></a></li>\
                     <li class="storeLocationMenu">\
                         <a href="/B/' + countryPrefix + '/storeLocation.html"><i class="icon icon-map-marker"></i>Store Location</a>\
                     </li>\
