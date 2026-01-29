@@ -253,6 +253,17 @@
                 }).catch(function (error) {
                     console.log(error);
                 });
+
+            // Clear success/error message when switching away from Overview (Personal Information) tab
+            var tabLinks = document.querySelectorAll('.nav-tabs a[data-toggle="tab"]');
+            tabLinks.forEach(function (link) {
+                link.addEventListener('click', function () {
+                    var targetHref = link.getAttribute('href');
+                    if (targetHref && targetHref !== '#overview') {
+                        clearProfileMessage();
+                    }
+                });
+            });
         }, false);
 
         function addWorkDays(startDate, days) {
@@ -377,6 +388,102 @@
                 }
             }
         }
+        async function changePassword() {
+            var oldPassword = document.getElementById('oldPassword').value;
+            var password = document.getElementById("password").value;
+            var repassword = document.getElementById("repassword").value;
+
+            if (!oldPassword.trim() || !password.trim() || !repassword.trim()) {
+                alert("Please fill in all password fields.");
+                return;
+            }
+            if (password !== repassword) {
+                document.getElementById("password").style.borderColor = "#E34234";
+                document.getElementById("repassword").style.borderColor = "#E34234";
+                alert("Passwords do not match. Please key again.");
+                return;
+            }
+            if (password.trim().length < 8) {
+                alert("Password must be at least 8 characters.");
+                return;
+            }
+
+            var memberData = { id: member.id, password: oldPassword };
+            try {
+                var verifyRes = await fetch(new Request('/api/verifyPassword', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + authToken
+                    },
+                    body: JSON.stringify(memberData)
+                }));
+                var verifyData = await verifyRes.json();
+                if (!verifyData.success) {
+                    alert("Old password is incorrect.");
+                    return;
+                }
+
+                var updatePayload = {
+                    id: member.id,
+                    email: member.email,
+                    name: member.name,
+                    phone: member.phone,
+                    country: member.country || member.city,
+                    address: member.address,
+                    securityQuestion: member.securityQuestion,
+                    securityAnswer: member.securityAnswer,
+                    age: member.age,
+                    income: member.income,
+                    sla: member.sla,
+                    password: password.trim()
+                };
+
+                var updateRes = await fetch(new Request('/api/updateMember', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Bearer ' + authToken
+                    },
+                    body: JSON.stringify(updatePayload)
+                }));
+                var updatedMember = await updateRes.json();
+
+                sessionStorage.setItem("member", JSON.stringify(updatedMember));
+                sessionStorage.setItem("memberEmail", updatedMember.email);
+                sessionStorage.setItem("memberName", updatedMember.name);
+
+                document.getElementById("oldPassword").value = "";
+                document.getElementById("password").value = "";
+                document.getElementById("repassword").value = "";
+                document.getElementById("password").style.borderColor = "";
+                document.getElementById("repassword").style.borderColor = "";
+
+                var url = window.location.origin + window.location.pathname;
+                window.location.href = url + '?goodMsg=Password changed successfully!';
+            } catch (error) {
+                console.log(error);
+                alert("Unable to update password. Please try again.");
+            }
+        }
+
+        function clearProfileMessage() {
+            var goodDiv = document.getElementById("goodDiv");
+            var errDiv = document.getElementById("errDiv");
+            if (goodDiv) {
+                goodDiv.style.display = "none";
+                goodDiv.innerHTML = "";
+            }
+            if (errDiv) {
+                errDiv.style.display = "none";
+                errDiv.innerHTML = "";
+            }
+            var url = new URL(window.location.href);
+            url.searchParams.delete("goodMsg");
+            url.searchParams.delete("errMsg");
+            history.replaceState({}, document.title, url.pathname + (url.search || ""));
+        }
+
         function pdpaWindow() {
             var myWindow = window.open("pdpa.html");
         }
