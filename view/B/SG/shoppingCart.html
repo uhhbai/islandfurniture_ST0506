@@ -35,6 +35,8 @@
             var finalPrice = 0;
             var stripeCustomer = null;
             var cardId = null;
+            var stripe = null;
+            var card = null;
             document.addEventListener('DOMContentLoaded', function(){
                 memberEmail = sessionStorage.getItem('memberEmail');
                 //disable checkout button is shopping cart is empty
@@ -92,7 +94,7 @@
                         </tr>';
                     document.getElementById('cartBody').innerHTML = htmlTxt;
                     document.getElementById('btmDiv').innerHTML = '<div align="left"><a href="#myModal" data-toggle="modal"><button id="btnRemove" class="btn btn-primary">Remove Item(s)</button></a></div>\
-                        <div align="right"><a href="#checkoutModal" data-toggle="modal"><button id="btnCheckout" class="btn btn-primary btn-lg">Check Out</button></a></div>';
+                        <div align="right"><button id="btnCheckout" class="btn btn-primary btn-lg" onclick="checkOut()">Check Out</button></div>';
                 }
 
                 fetch(new Request('/api/getStripeCustomer?email=' + memberEmail,
@@ -165,7 +167,7 @@
                     console.log(error);
                 });
 
-                var stripe = Stripe('pk_test_VmXIT1btdiAeYAFhGQuUPVgU');
+                stripe = Stripe('pk_test_VmXIT1btdiAeYAFhGQuUPVgU');
                 var elements = stripe.elements();
                 var style = {
                     base: {
@@ -186,7 +188,7 @@
                         iconColor: '#45bc42'
                     }
                 };
-                var card = elements.create('card', {style: style, hidePostalCode:true});
+                card = elements.create('card', {style: style, hidePostalCode:true});
                 card.mount('#card-element');
                 card.addEventListener('change', function(event) {
                 var displayError = document.getElementById('card-errors');
@@ -203,52 +205,9 @@
                 document.getElementById('txtAddress').value = member.address;
                 document.getElementById('txtPostalCode').value = member.zipcode;
 
-                document.getElementById("makePayment").addEventListener('click', function(){
-                    var cardRadio = document.getElementsByName('icon_solid');
-                    var cardValue = null;
-                    for (i = 0; i < cardRadio.length; i++) {
-                        if (cardRadio[i].checked) {
-                            cardValue = cardRadio[i].value;       
-                        }
-                    }
-                    var name = document.getElementById('txtName').value;
-                    var contactNum = document.getElementById('txtContact').value;
-                    var address = document.getElementById('txtAddress').value;
-                    var postalCode = document.getElementById('txtPostalCode').value;
-                    var deliveryDate = document.getElementById('deliveryDate').innerHTML;
-                    
-                    if(document.getElementById('deliveryForm').checkValidity()) {
-                        var paymentData = {
-                            memberId: member.id,
-                            email: memberEmail,
-                            price: finalPrice,
-                            shoppingCart: shoppingCart,
-                            name: name,
-                            phone: contactNum,
-                            address: address,
-                            postalCode: postalCode,
-                            deliveryDate: deliveryDate
-                        };
-                        
-                        if(cardValue == "add") {
-                            stripe.createToken(card).then(function(result) {
-                                if (result.error) {
-                                    var errorElement = document.getElementById('card-errors');
-                                    errorElement.textContent = result.error.message;
-                                } else {
-                                    paymentData.token = result.token;
-                                    paymentData.saveCard = document.getElementById('saveCard').checked;
-                                    processPaymentNewCard(paymentData);
-                                }
-                            });
-                        }
-                        else {
-                            
-                            paymentData.customerId = stripeCustomer.id;
-                            paymentData.cardId = cardValue;
-                            processPaymentExistingCard(paymentData);
-                        }
-                    }
+                document.getElementById("makePayment").addEventListener('click', function(e){
+                    e.preventDefault();
+                    $('#paymentConfirmModal').modal('show');
                 });
 
                 document.getElementById('deliveryDate').innerHTML = addWorkDays(5);
@@ -345,10 +304,100 @@
                 document.getElementById('btnRemove').disabled = true;
                 document.getElementsByClassName('minus')[0].setAttribute("style","cursor: not-allowed;");
                 document.getElementsByClassName('plus')[0].setAttribute("style","cursor: not-allowed;");
-                document.getElementById('btnCheckout').parentElement.removeAttribute('href');
-                document.getElementById('btnRemove').parentElement.removeAttribute('href');
+                var btnCheckout = document.getElementById('btnCheckout');
+                var btnRemove = document.getElementById('btnRemove');
+                if (btnCheckout && btnCheckout.parentElement && btnCheckout.parentElement.tagName === 'A') btnCheckout.parentElement.removeAttribute('href');
+                if (btnRemove && btnRemove.parentElement && btnRemove.parentElement.tagName === 'A') btnRemove.parentElement.removeAttribute('href');
                 $("html, body").animate({scrollTop: $(document).height() / 3}, "slow");
                 $("#makePaymentForm").show("slow", function () { });
+            }
+
+            function showPaymentError(msg) {
+                var el = document.getElementById('paymentFormErrors');
+                if (el) {
+                    el.textContent = msg;
+                    el.style.display = 'block';
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            function clearPaymentErrors() {
+                var el = document.getElementById('paymentFormErrors');
+                if (el) {
+                    el.textContent = '';
+                    el.style.display = 'none';
+                }
+                var cardErr = document.getElementById('card-errors');
+                if (cardErr) cardErr.textContent = '';
+            }
+
+            function doMakePayment() {
+                $('#paymentConfirmModal').modal('hide');
+                clearPaymentErrors();
+
+                var cardRadio = document.getElementsByName('icon_solid');
+                var cardValue = null;
+                for (var i = 0; i < cardRadio.length; i++) {
+                    if (cardRadio[i].checked) {
+                        cardValue = cardRadio[i].value;
+                        break;
+                    }
+                }
+
+                var deliveryForm = document.getElementById('deliveryForm');
+                if (!deliveryForm.checkValidity()) {
+                    deliveryForm.reportValidity();
+                    showPaymentError('Please fill in all delivery details: Name, Contact, Address, and Postal Code (6 digits).');
+                    return;
+                }
+
+                if (!cardValue || cardValue === '') {
+                    showPaymentError('Please select a payment method: choose a saved card or enter new card details.');
+                    return;
+                }
+
+                var name = document.getElementById('txtName').value;
+                var contactNum = document.getElementById('txtContact').value;
+                var address = document.getElementById('txtAddress').value;
+                var postalCode = document.getElementById('txtPostalCode').value;
+                var deliveryDate = document.getElementById('deliveryDate').innerHTML;
+
+                var paymentData = {
+                    memberId: member.id,
+                    email: memberEmail,
+                    price: finalPrice,
+                    shoppingCart: shoppingCart,
+                    name: name,
+                    phone: contactNum,
+                    address: address,
+                    postalCode: postalCode,
+                    deliveryDate: deliveryDate
+                };
+
+                if (cardValue == "add") {
+                    if (!stripe || !card) {
+                        showPaymentError('Payment form is still loading. Please try again.');
+                        return;
+                    }
+                    stripe.createToken(card).then(function (result) {
+                        if (result.error) {
+                            var msg = result.error.message || 'Please enter valid card details.';
+                            var errorElement = document.getElementById('card-errors');
+                            if (errorElement) errorElement.textContent = msg;
+                            showPaymentError(msg);
+                        } else {
+                            paymentData.token = result.token;
+                            paymentData.saveCard = document.getElementById('saveCard').checked;
+                            processPaymentNewCard(paymentData);
+                        }
+                    }).catch(function (err) {
+                        showPaymentError('Please enter valid card details.');
+                    });
+                } else {
+                    paymentData.customerId = stripeCustomer.id;
+                    paymentData.cardId = cardValue;
+                    processPaymentExistingCard(paymentData);
+                }
             }
 
             function showCardDiv(show) {
@@ -767,7 +816,8 @@
                                                                 <label for="saveCard" style="float: left; padding-left: 9px;">Save card</label>
                                                             </div>
                                                         </div>
-                                                        <div align="left" style="padding-top:9%;padding-bottom: 20px;"><input type="submit" form="deliveryForm" id="makePayment" value="Make Payment" class="btn btn-primary"></div>
+                                                        <div align="left" style="padding-top:9%;padding-bottom: 20px;"><input type="button" id="makePayment" value="Make Payment" class="btn btn-primary"></div>
+                                                        <div id="paymentFormErrors" class="alert alert-danger" role="alert" style="display: none; margin-top: 15px;"></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -796,18 +846,18 @@
                     </div>
                 </div>
             </div>
-            <div role="dialog" class="modal fade" id="checkoutModal">
+            <div role="dialog" class="modal fade" id="paymentConfirmModal">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h4>Checking out...</h4>
+                            <h4>Make payment</h4>
                         </div>
                         <div class="modal-body">
-                            <p id="messageBox">Are you sure you want to check out?</p>
+                            <p>Are you sure you want to make payment?</p>
                         </div>
-                        <div class="modal-footer">                        
-                            <input class="btn btn-primary" data-dismiss ="modal" name="btnCheckout" type="button" value="Confirm" onclick="checkOut()"  />
-                            <a class="btn btn-default" data-dismiss ="modal">Close</a>
+                        <div class="modal-footer">
+                            <input class="btn btn-primary" data-dismiss="modal" type="button" value="Confirm" onclick="doMakePayment()" />
+                            <a class="btn btn-default" data-dismiss="modal">Close</a>
                         </div>
                     </div>
                 </div>

@@ -284,7 +284,8 @@ var memberDB = {
                     }
                   });
                   conn.end();
-                  return resolve({ success: true });
+                  // 👇 CHANGED: We now send the link back to the frontend
+                  return resolve({ success: true, activationLink: activationLink });
                 }
               }
             });

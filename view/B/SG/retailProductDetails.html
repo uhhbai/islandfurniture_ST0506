@@ -21,6 +21,10 @@
                     //set retail product details
                     document.getElementById("productImg").setAttribute('src', product.imageURL);
 
+                    document.getElementById("productName").textContent = product.name;
+                    document.getElementById("productDesc").textContent = product.description;
+                    document.getElementById("productPrice").textContent = '$' + product.price.toFixed(2);
+
                     document.getElementById("productCategory").innerHTML = product.category;
                     document.getElementById("productCategory").setAttribute('href', '/B/' + countryPrefix
                         + '/retailProductsCategory.html?cat=' + encodeURIComponent(product.category));
