@@ -11,6 +11,7 @@ class Furniture {
         this.height = null;
         this.category = null;
         this.price = null;
+        this.discount = null;
     }
 }
 module.exports = Furniture;
