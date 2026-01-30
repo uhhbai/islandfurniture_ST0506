@@ -2,56 +2,196 @@
 <html>
 <style>
     .user-badge {
-        position: absolute;
-        top: 2px;
-        /* Spaced away from the top edge */
-        right: 70px;
-        /* Spaced away from the right edge */
-        height: 28px;
-        /* Compact height */
-        padding: 2px 2px;
+        position: sticky;
+        top: 100px;
+        padding: 0;
+        min-height: 44px;
+        z-index: 100;
+        margin-left: auto;
 
-        /* Professional "Card" Look */
-        background-color: #ffffff;
-        padding: 8px 20px;
-        border-radius: 50px;
-        /* Makes it pill-shaped */
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        /* Soft shadow for depth */
-        border: 1px solid #e0e0e0;
-
-        /* Font Styling */
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        font-size: 13px;
-        font-weight: 600;
-        z-index: 9999;
-
-        /* Layout for Icon + Text */
         display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.3s ease;
+        align-items: stretch;
+        gap: 0;
+        overflow: hidden;
+
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e8e8e8;
+
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
-    /* Optional: Hover effect */
     .user-badge:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: rgba(204, 59, 51, 0.35);
     }
 
-    .user-badge i {
+    .user-profile-page-top .user-profile-page-top-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+
+    .user-badge-accent {
+        width: 4px;
+        background: linear-gradient(180deg, #cc3b33 0%, #a82f28 100%);
+        flex-shrink: 0;
+    }
+
+    .user-badge-inner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px 10px 14px;
+    }
+
+    .user-badge-icon-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #fff5f4 0%, #ffebe9 100%);
+        border: 1px solid rgba(204, 59, 51, 0.2);
+        flex-shrink: 0;
+    }
+
+    .user-badge-icon-wrap i {
         font-size: 14px;
         color: #cc3b33;
-        /* Icon color matches your theme */
     }
+
+    .user-badge-text {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        flex-wrap: wrap;
+        line-height: 1.3;
+    }
+
+    .user-badge-welcome {
+        color: #6b7280;
+        font-weight: 500;
+        font-size: 13px;
+    }
+
+    .user-badge-name {
+        color: #1f2937;
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 0.01em;
+    }
+
+    /* Sales History tab */
+    .sales-history-summary {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 20px;
+        font-size: 15px;
+    }
+    .sales-history-summary strong { color: #333; }
+    .sales-history-summary .total-spent { color: #cc3b33; font-weight: 700; font-size: 1.1em; }
+    .sales-history-empty {
+        text-align: center;
+        padding: 48px 24px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px dashed #dee2e6;
+    }
+    .sales-history-empty .icon-empty { font-size: 48px; color: #adb5bd; margin-bottom: 16px; }
+    .sales-history-empty h5 { color: #495057; font-weight: 600; margin-bottom: 8px; }
+    .sales-history-empty p { color: #6c757d; margin: 0; }
+    .sales-history-order-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        margin-bottom: 28px;
+        overflow: hidden;
+    }
+    .sales-history-order-header {
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+        padding: 14px 20px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px 24px;
+    }
+    .sales-history-order-header .order-title {
+        font-weight: 700;
+        font-size: 1.05em;
+        color: #333;
+        margin: 0;
+    }
+    .sales-history-order-header .order-meta {
+        color: #6c757d;
+        font-size: 0.9em;
+        margin: 0;
+    }
+    .sales-history-order-header .order-meta span { margin-right: 16px; }
+    .sales-history-delivery {
+        padding: 14px 20px;
+        background: #fafafa;
+        border-bottom: 1px solid #eee;
+        font-size: 0.9em;
+        color: #495057;
+    }
+    .sales-history-delivery .delivery-label { font-weight: 600; color: #333; margin-bottom: 6px; }
+    .sales-history-delivery .delivery-details { margin: 0; line-height: 1.5; }
+    .sales-history-order-card .box-content { padding: 0; }
+    .sales-history-order-card .shop_table.cart { margin: 0; }
+    .sales-history-order-card .shop_table.cart thead th { background: #f8f9fa; padding: 12px 16px; font-size: 0.9em; }
+    .sales-history-order-card .shop_table.cart tbody td { padding: 14px 16px; vertical-align: middle; }
+    .sales-history-order-card .product-thumbnail img { border-radius: 4px; }
+    .sales-history-order-total {
+        text-align: right;
+        padding: 12px 20px;
+        background: #f8f9fa;
+        border-top: 2px solid #cc3b33;
+        font-weight: 700;
+        font-size: 1.05em;
+        color: #333;
+    }
+    .sales-history-order-total .amount { color: #cc3b33; }
+    .sales-history-grand-total {
+        padding: 16px 20px;
+        background: linear-gradient(135deg, #333 0%, #555 100%);
+        color: #fff;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 1.15em;
+        text-align: right;
+    }
+    .sales-history-grand-total .amount { color: #ffc107; }
+
+    /* Change password error modal – consistent with site */
+    #changePasswordErrorModal .modal-header {
+        border-bottom: 1px solid #f5c6cb;
+        background: linear-gradient(180deg, #fff5f5 0%, #fff 100%);
+    }
+    #changePasswordErrorModal .modal-header .modal-title { color: #721c24; font-weight: 600; }
+    #changePasswordErrorModal .modal-header .close { color: #721c24; opacity: 0.8; }
+    #changePasswordErrorModal .modal-header .close:hover { opacity: 1; }
+    #changePasswordErrorModal .modal-body { color: #333; }
+    #changePasswordErrorModal .modal-footer { border-top: 1px solid #e9ecef; }
 </style>
 <script src="../../header.js"></script>
 
 <body>
-    <div id="topRightGreeting" class="user-badge" style="display: none;">
-        <i class="icon icon-user"></i>
-        <span id="greetingText"></span>
-    </div>
     <script>
         var authToken = null;
         var countryPrefix = localStorage.getItem('urlPrefix');
@@ -92,24 +232,14 @@
             document.getElementById("income").value = member.income || '';
             document.getElementById("serviceLevelAgreement").checked = member.sla == 1;
 
-            // Display top-right name
+            // Display top-right welcome badge
             const memberName = sessionStorage.getItem("memberName");
-            // Get the main container to show/hide it
             const greetingContainer = document.getElementById("topRightGreeting");
-            // Get the span where the text goes
-            const greetingTextSpan = document.getElementById("greetingText");
+            const greetingNameEl = document.getElementById("greetingName");
 
-            if (greetingContainer && greetingTextSpan) {
-                // Reveal the badge
+            if (greetingContainer && greetingNameEl) {
                 greetingContainer.style.display = "flex";
-
-                if (memberName == "null" || !memberName) {
-                    greetingTextSpan.textContent = "Welcome, Guest";
-                    greetingTextSpan.style.color = "#555"; // Professional dark grey
-                } else {
-                    greetingTextSpan.textContent = "Welcome, " + memberName;
-                    greetingTextSpan.style.color = "#333"; // Darker professional text
-                }
+                greetingNameEl.textContent = (memberName == "null" || !memberName) ? "Guest" : memberName;
             }
 
             if (member.sla == 1) {
@@ -126,129 +256,89 @@
                 })).then(function (response) {
                     return response.json();
                 }).then(function (boughtItem) {
-                    if (boughtItem == null || boughtItem == '') { //if member do not have any bought items
-                        document.getElementById("salesHistoryTab").innerHTML = '<h5 class="center">You do not have any sales history.</h5>';
-                    }
-                    else {
-                        var htmlTxt = '';
+                    if (boughtItem == null || boughtItem == '') {
+                        document.getElementById("salesHistoryTab").innerHTML =
+                            '<div class="sales-history-empty">' +
+                            '<div class="icon-empty"><i class="icon icon-shopping-cart"></i></div>' +
+                            '<h5>No orders yet</h5>' +
+                            '<p>Your order history will appear here once you make a purchase.</p>' +
+                            '</div>';
+                    } else {
                         var orderIdList = [];
                         var overallPrice = 0;
-                        var finalPrice = 0;
-                        //get all order IDs
-                        for (i = 0; i < boughtItem.length; i++) {
+                        for (var i = 0; i < boughtItem.length; i++) {
                             orderIdList[i] = boughtItem[i].id;
                         }
-                        //unduplicate order IDs
                         orderIdList = [...new Set(orderIdList)];
-                        var temp;
                         var size = orderIdList.length;
-                        //sort order ID in ascending order
-                        for (i = 0; i < size - 1; i++) {
-                            for (j = 0; j < size - i - 1; j++) {
+                        for (var i = 0; i < size - 1; i++) {
+                            for (var j = 0; j < size - i - 1; j++) {
                                 if (orderIdList[j] > orderIdList[j + 1]) {
-                                    temp = orderIdList[j];
+                                    var temp = orderIdList[j];
                                     orderIdList[j] = orderIdList[j + 1];
                                     orderIdList[j + 1] = temp;
                                 }
                             }
                         }
 
+                        var ordersHtml = '';
+
                         for (var o = 0; o < orderIdList.length; o++) {
-                            var finalPrice = 0; // Move inside the order loop so total is per order
                             var orderId = orderIdList[o];
-                            htmlTxt += '<h5>Order #' + (o + 1) + '</h5>';
-                            var counter = 0;
-                            //get bought items by order ID
-                            for (j = 0; j < boughtItem.length; j++) {
-                                if (boughtItem[j].id == orderId) {
-                                    var item = boughtItem[j];
-                                    //display top level info only once for this order
-                                    if (counter == 0) {
-                                        let options = {
-                                            weekday: "long", year: "numeric", month: "long",
-                                            day: "numeric", hour: "2-digit", minute: "2-digit"
-                                        };
-                                        var datePurchased = (new Date(item.createddate)).toLocaleTimeString('en-us', options);
-                                        var deliveryDate = addWorkDays(new Date(item.createddate), 5);
-                                        htmlTxt += '\
-                        <h6>Date Purchased: ' + datePurchased + '</h6>\
-                        <h6>Estimated Delivery Date: ' + deliveryDate + '</h6>\
-                        <h6 style="text-decoration:underline; font-weight:bold">Delivery Details:</h6>\
-                        <h6>Address: ' + item.address + '</h6>\
-                        <h6>Postal Code: ' + item.postalCode + '</h6>\
-                        <h6>Name: ' + item.customerName + '</h6>\
-                        <h6>Contact Number: ' + item.phone + '</h6>';
-                                        counter++;
-                                    }
-                                }
+                            var orderItems = boughtItem.filter(function (item) { return item.id === orderId; });
+                            var firstItem = orderItems[0];
+                            var orderTotal = 0;
+                            var dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+                            var datePurchased = (new Date(firstItem.createddate)).toLocaleDateString('en-us', dateOpts);
+                            var deliveryDate = addWorkDays(new Date(firstItem.createddate), 5);
+
+                            ordersHtml += '<div class="sales-history-order-card">';
+                            ordersHtml += '<div class="sales-history-order-header">' +
+                                '<h5 class="order-title">Order #' + (o + 1) + '</h5>' +
+                                '<p class="order-meta">' +
+                                '<span><i class="icon icon-calendar"></i> ' + datePurchased + '</span>' +
+                                '<span><i class="icon icon-truck"></i> Est. delivery: ' + deliveryDate + '</span>' +
+                                '</p></div>';
+                            ordersHtml += '<div class="sales-history-delivery">' +
+                                '<div class="delivery-label">Delivery details</div>' +
+                                '<div class="delivery-details">' + (firstItem.customerName || '') + ' &middot; ' + (firstItem.phone || '') + '<br/>' +
+                                (firstItem.address || '') + (firstItem.postalCode ? ', ' + firstItem.postalCode : '') + '</div></div>';
+                            ordersHtml += '<div class="box-content"><table cellspacing="0" class="shop_table cart">' +
+                                '<thead><tr>' +
+                                '<th class="product-thumbnail" style="width: 25%">Image</th>' +
+                                '<th class="product-name" style="width: 38%">Product</th>' +
+                                '<th class="product-price" style="width: 15%">Price</th>' +
+                                '<th class="product-quantity" style="width: 15%">Qty</th>' +
+                                '<th class="product-subtotal" style="width: 15%">Subtotal</th>' +
+                                '</tr></thead><tbody>';
+
+                            for (var y = 0; y < orderItems.length; y++) {
+                                var product = orderItems[y];
+                                var lineTotal = product.retailPrice * product.quantity;
+                                orderTotal += lineTotal;
+                                overallPrice += lineTotal;
+                                ordersHtml += '<tr class="cart_table_item">' +
+                                    '<td class="product-thumbnail">' +
+                                    '<a href="/B/' + countryPrefix + '/furnitureProductDetails.html?sku=' + (product.sku || '') + '">' +
+                                    '<img width="80" height="80" alt="" class="img-responsive" src="' + (product.imageUrl || '') + '"></a></td>' +
+                                    '<td class="product-name">' +
+                                    '<a href="/B/' + countryPrefix + '/furnitureProductDetails.html?sku=' + (product.sku || '') + '">' + (product.itemName || '') + '</a></td>' +
+                                    '<td class="product-price">$<span class="amount">' + (product.retailPrice ? product.retailPrice.toFixed(2) : '0.00') + '</span></td>' +
+                                    '<td class="product-quantity">' + (product.quantity || 0) + '</td>' +
+                                    '<td class="product-subtotal">$<span class="amount">' + lineTotal.toFixed(2) + '</span></td></tr>';
                             }
-                            //display table info
-                            htmlTxt += '\
-            <div class="row">\
-                <div class="col-md-12">\
-                    <div class="row featured-boxes">\
-                        <div class="col-md-12">\
-                            <div class="featured-box featured-box-secundary featured-box-cart">\
-                                <div class="box-content">\
-                                    <table cellspacing="0" class="shop_table cart">\
-                                        <thead>\
-                                            <tr>\
-                                                <th class="product-thumbnail" style="width: 25%">Image</th>\
-                                                <th class="product-name" style="width: 38%">Product</th>\
-                                                <th class="product-price" style="width: 15%">Price</th>\
-                                                <th class="product-quantity" style="width: 15%">Quantity</th>\
-                                                <th class="product-subtotal" style="width: 15%">Subtotal</th>\
-                                            </tr>\
-                                        </thead>\
-                                        <tbody>';
-                            for (y = 0; y < boughtItem.length; y++) {
-                                if (boughtItem[y].id == orderId) {
-                                    var product = boughtItem[y];
-                                    htmlTxt += '\
-                    <tr class="cart_table_item">\
-                        <td class="product-thumbnail">\
-                            <a href="/B/' + countryPrefix + '/furnitureProductDetails.html?sku=' + product.sku + '"><img width="100" height="100" alt="" class="img-responsive" src="' + product.imageUrl + '"></a>\
-                        </td>\
-                        <td class="product-name">\
-                            <a class="productDetails" href="/B/' + countryPrefix + '/furnitureProductDetails.html?sku=' + product.sku + '">' + product.itemName + '</a>\
-                        </td>\
-                        <td class="product-price">\
-                            $<span class="amount">' + product.retailPrice.toFixed(2) + '</span>\
-                        </td>\
-                        <td class="product-quantity">\
-                            <span class="qty">' + product.quantity + '</span>\
-                        </td>\
-                        <td class="product-subtotal">\
-                            $<span class="amount">' + (product.retailPrice * product.quantity).toFixed(2) + '</span>\
-                        </td>\
-                    </tr>';
-                                    finalPrice += product.retailPrice * product.quantity;
-                                    overallPrice += product.retailPrice * product.quantity;
-                                }
-                            }
-                            htmlTxt += '\
-                                            <tr>\
-                                                <td></td>\
-                                                <td></td>\
-                                                <td></td>\
-                                                <td class="product-subtotal" style="font-weight: bold; color: #cc3b33">Total:</td>\
-                                                <td class="product-subtotal" style="font-weight: bold">\
-                                                    $<span class="amount" id="finalPrice" name="finalPrice">' + finalPrice.toFixed(2) + '</span>\
-                                                </td>\
-                                            </tr>\
-                                        </tbody>\
-                                    </table>\
-                                </div>\
-                            </div>\
-                        </div>\
-                    </div>\
-                </div>\
-            </div>';
+
+                            ordersHtml += '</tbody></table></div>';
+                            ordersHtml += '<div class="sales-history-order-total">Order total: $<span class="amount">' + orderTotal.toFixed(2) + '</span></div>';
+                            ordersHtml += '</div>';
                         }
 
-                        htmlTxt += '<h4 style="font-weight: bold; padding-left: 20px">Total Amount Spent: $' + overallPrice.toFixed(2) + '</h4>';
-                        document.getElementById("salesHistoryTab").innerHTML = htmlTxt;
-
+                        var summaryHtml = '<div class="sales-history-summary">' +
+                            '<strong>' + orderIdList.length + ' order' + (orderIdList.length !== 1 ? 's' : '') + '</strong>' +
+                            '<span class="total-spent">Total spent: $' + overallPrice.toFixed(2) + '</span>' +
+                            '</div>';
+                        var grandTotalHtml = '<div class="sales-history-grand-total">Total amount spent: $<span class="amount">' + overallPrice.toFixed(2) + '</span></div>';
+                        document.getElementById("salesHistoryTab").innerHTML = summaryHtml + ordersHtml + grandTotalHtml;
                     }
                 }).catch(function (error) {
                     console.log(error);
@@ -394,17 +484,17 @@
             var repassword = document.getElementById("repassword").value;
 
             if (!oldPassword.trim() || !password.trim() || !repassword.trim()) {
-                alert("Please fill in all password fields.");
+                showChangePasswordError("Please fill in all password fields.");
                 return;
             }
             if (password !== repassword) {
                 document.getElementById("password").style.borderColor = "#E34234";
                 document.getElementById("repassword").style.borderColor = "#E34234";
-                alert("Passwords do not match. Please key again.");
+                showChangePasswordError("Passwords do not match. Please key again.");
                 return;
             }
             if (password.trim().length < 8) {
-                alert("Password must be at least 8 characters.");
+                showChangePasswordError("Password must be at least 8 characters.");
                 return;
             }
 
@@ -420,7 +510,7 @@
                 }));
                 var verifyData = await verifyRes.json();
                 if (!verifyData.success) {
-                    alert("Old password is incorrect.");
+                    showChangePasswordError("Old password is incorrect.");
                     return;
                 }
 
@@ -463,7 +553,7 @@
                 window.location.href = url + '?goodMsg=Password changed successfully!';
             } catch (error) {
                 console.log(error);
-                alert("Unable to update password. Please try again.");
+                showChangePasswordError("Unable to update password. Please try again.");
             }
         }
 
@@ -484,17 +574,37 @@
             history.replaceState({}, document.title, url.pathname + (url.search || ""));
         }
 
+        function showChangePasswordError(msg) {
+            var el = document.getElementById("changePasswordErrorMsg");
+            if (el) el.textContent = msg || "Something went wrong.";
+            if (typeof $ !== "undefined" && $.fn.modal) {
+                $("#changePasswordErrorModal").modal("show");
+            } else {
+                alert(msg || "Something went wrong.");
+            }
+        }
+
         function pdpaWindow() {
             var myWindow = window.open("pdpa.html");
         }
     </script>
     <script src="menu2.js"></script>
     <div role="main" class="main">
-        <section class="page-top">
+        <section class="page-top user-profile-page-top">
             <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
+                <div class="row user-profile-page-top-row">
+                    <div>
                         <h2>User Profile</h2>
+                    </div>
+                    <div id="topRightGreeting" class="user-badge" style="display: none;">
+                        <div class="user-badge-accent"></div>
+                        <div class="user-badge-inner">
+                            <div class="user-badge-icon-wrap"><i class="icon icon-user"></i></div>
+                            <div class="user-badge-text">
+                                <span class="user-badge-welcome">Welcome,</span>
+                                <span class="user-badge-name" id="greetingName"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -874,6 +984,24 @@
         </div>
     </div>
     </div>
+
+    <div role="dialog" class="modal fade" id="changePasswordErrorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Change password</h4>
+                </div>
+                <div class="modal-body">
+                    <p id="changePasswordErrorMsg" style="margin-bottom: 0;">Something went wrong.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../footer.js"></script>
 </body>
 
