@@ -2,12 +2,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Read environment variables from file.
+ * Read environment variables from file (e.g. TEST_MEMBER_EMAIL, TEST_MEMBER_PASSWORD).
  * https://github.com/motdotla/dotenv
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+import dotenv from 'dotenv';
+import path from 'path';
+// Load .env from project root (works when running from project dir; __dirname can be wrong in ESM)
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -27,7 +28,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'http://localhost:8081',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
