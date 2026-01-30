@@ -34,8 +34,15 @@
                         }
 
                         // -----------------------------------------------------------
-                        // 2. GENERATE HTML
+                        // 2. GENERATE HTML (Add To Cart inside card when logged in)
                         // -----------------------------------------------------------
+                        var memberEmail = sessionStorage.getItem('memberEmail');
+                        var addToCartBtn = '';
+                        if (memberEmail != null && memberEmail != '') {
+                            addToCartBtn = '<button class="btn btn-primary btn-block" onclick="addToCart(\'' + furniture.sku +
+                                '\',\'' + furniture.id + '\',' + furniture.price + ',\'' + furniture.name + '\',\'' + furniture.imageURL +
+                                '\')">Add To Cart</button>';
+                        }
                         htmlTxt += '\
     <li class="col-md-3 col-sm-6 col-xs-12 product" style="padding-bottom: 1%;padding-top: 2%;">\
         <span class="product-thumb-info">\
@@ -59,25 +66,16 @@
                     <em>Width: ' + furniture.width + '</em>\
                 </span><br/>\
                 <span class="product-thumb-info-act-left">\
-                    \
                     <em>' + priceDisplay + '</em>\
                 </span><br/>\
                 <form action="furnitureProductDetails.html">\
                     <input type="hidden" name="sku" value="' + furniture.sku + '"/>\
                     <input type="submit" class="btn btn-primary btn-block" value="More Details"/>\
                 </form>\
+                ' + addToCartBtn + '\
             </span>\
         </span>\
     </li>';
-                        //check if user is logged in
-                        var memberEmail = sessionStorage.getItem('memberEmail');
-                        //display 'Add To Cart' button only if user is logged in
-                        if (memberEmail != null && memberEmail != '') {
-                            htmlTxt += '<button class="btn btn-primary btn-block" onclick="addToCart(\'' + furniture.sku +
-                                '\',\'' + furniture.id + '\',' + furniture.price + ',\'' + furniture.name + '\',\'' + furniture.imageURL +
-                                '\')">Add To Cart</button>';
-                        }
-                        htmlTxt += '</span></span></li>';
                     }
                     document.getElementById("furnituresDisplay").innerHTML = htmlTxt;
                     document.getElementById("categoryTitle").innerHTML = cat;
