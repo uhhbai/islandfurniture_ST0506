@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "npx playwright test",
-    "test:profile": "npx playwright test tests/profile-changepass.spec.js --workers=1"
+    "test:profile": "npx playwright test tests/profile-changepass.spec.js --workers=1",
+    "test:sales-history": "npx playwright test tests/salesHistory.spec.js"
   },
   "repository": {
     "type": "git",
