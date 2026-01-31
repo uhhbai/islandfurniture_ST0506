@@ -478,6 +478,34 @@
                 }
             }
         }
+
+        async function clearFormButKeepEmail() {
+    // 1. Clear Text Fields (Set to empty string)
+    document.getElementById("name").value = "";
+    document.getElementById("phone").value = "";
+    document.getElementById("address").value = "";
+    document.getElementById("securityAnswer").value = "";
+    document.getElementById("age").value = "";
+    document.getElementById("income").value = "";
+
+    // 2. Reset Dropdowns (Set to empty or default first option)
+    document.getElementById("country").value = ""; 
+    document.getElementById("securityQuestion").value = "1"; 
+
+    // 3. Uncheck the checkbox
+    document.getElementById("serviceLevelAgreement").checked = false;
+
+    // 4. CRITICAL: Ensure Email is NOT cleared
+    // We grab the email from the session just to be 100% sure it remains correct
+    var originalMember = JSON.parse(sessionStorage.getItem("member"));
+    if (originalMember && originalMember.email) {
+        document.getElementById("email").value = originalMember.email;
+    }
+
+    // 5. Clear any previous success/error messages
+    clearProfileMessage();
+}
+
         async function changePassword() {
             var oldPassword = document.getElementById('oldPassword').value;
             var password = document.getElementById("password").value;
@@ -940,7 +968,7 @@
                                             <div class="form-group">
                                                 <input type="submit" onclick="submitForm()" value="Submit"
                                                     class="btn btn-primary" />
-                                                <input type="reset" value="Reset" class="btn btn-primary" />
+                                                <input type="button" onclick="clearFormButKeepEmail()" value="Reset" class="btn btn-primary" />
                                             </div>
                                         </div>
                                     </div>
