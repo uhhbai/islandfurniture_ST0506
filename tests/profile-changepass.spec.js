@@ -1,202 +1,243 @@
 import { test, expect } from '@playwright/test';
 
 const COUNTRY_PREFIX = 'SG';
-const TEST_EMAIL = 'john@test.com';
-const TEST_PASSWORD = 'NewPass@123';
+// Replace with your activated test account (same as salesHistory)
+const TEST_EMAIL = 'tom@lol.com';
+const TEST_PASSWORD = '12345678';
 
 // --- Login helper ---
-async function login(page) {
+async function login(page, password = TEST_PASSWORD) {
   console.log('Starting login process...');
-  
-  // 1. First, handle country selection if needed
+
   await page.goto('http://localhost:8081/B/selectCountry.html');
   await page.click('text=Singapore');
   await page.waitForURL(/\/B\/SG\//);
   console.log('✓ Country selected: Singapore');
 
-  // 2. Navigate to Login Page
   await page.goto(`http://localhost:8081/B/${COUNTRY_PREFIX}/memberLogin.html`);
-  
-  // 3. Wait for login form to be visible
+
   const emailInput = page.locator('#emailLogin');
   await emailInput.waitFor({ state: 'visible', timeout: 10000 });
 
-  // 4. Enter credentials
   await emailInput.fill(TEST_EMAIL);
-  await page.locator('#passwordLogin').fill(TEST_PASSWORD);
+  await page.locator('#passwordLogin').fill(password);
   console.log('✓ Credentials entered');
 
-  // 5. Click Login button
   await page.click('input[value="Login"]');
+  // Wait for redirect (success → memberProfile, failure → memberLogin?errMsg=)
+  await page.waitForURL(/\/(memberProfile|memberLogin)\.html/, { timeout: 10000 });
 
-  // 6. Wait for profile page to load
-  await page.waitForURL('**/memberProfile.html', { timeout: 10000 });
-  
-  // Check if login was successful
   if (page.url().includes('errMsg=')) {
     await page.screenshot({ path: 'test-results/login-error-profile.png' });
     throw new Error(
-      `Login failed for ${TEST_EMAIL}. Check credentials or account activation status.`
+      `Login failed for ${TEST_EMAIL}. Update TEST_EMAIL and TEST_PASSWORD in tests/profile-changepass.spec.js`
     );
   }
-  
+
+  // Wait for profile page to load
+  await page.waitForSelector('#name', { state: 'visible', timeout: 10000 });
   console.log('✓ Login successful');
 }
 
-// --- Test suite ---
-test.describe('Member Profile Page - Edit Profile & Change Password', () => {
+// --- Test suite (serial: one at a time, so password change test doesn't break others) ---
+test.describe.serial('Member Profile Page - Edit Profile & Change Password', () => {
 
-  // --- Login before each test ---
   test.beforeEach(async ({ page }, testInfo) => {
-    testInfo.setTimeout(30000); // 30 seconds timeout
+    testInfo.setTimeout(60000); // 60s for slow loads
     await login(page);
   });
 
   // --- Personal Info Tests ---
   test('Personal Information - Edit Profile - should update personal information successfully', async ({ page }) => {
     console.log('Test: Updating personal information...');
-    
-    // Take screenshot of profile page
-    await page.screenshot({ path: 'test-results/profile-page-initial.png', fullPage: true });
-    
-    // Navigate to Edit Profile section
-    await page.click('#editProfileButton');
-    console.log('✓ Edit profile button clicked');
 
-    // Fill out personal info
-    await page.fill('#nameInput', 'John Doe');
-    await page.fill('#phoneInput', '67671234');
-    await page.selectOption('#countryDropdown', { label: 'Singapore' });
-    await page.fill('#addressInput', '123 Singapore');
-    await page.selectOption('#challengeQuestionDropdown', { label: "What is your mother's maiden name?" });
-    await page.fill('#challengeAnswerInput', 'Mary');
-    await page.fill('#ageInput', '20');
-    await page.fill('#incomeInput', '2400');
+    await page.screenshot({ path: 'test-results/profile-page-initial.png', fullPage: true });
+
+    // Fill form fields (these are in the Overview tab which is active by default)
+    await page.fill('#name', 'John Doe');
+    await page.fill('#phone', '67671234');
+    await page.selectOption('#country', 'Singapore');
+    await page.fill('#address', '123 Singapore');
+    await page.selectOption('#securityQuestion', { value: '1' }); // Mother's maiden name
+    await page.fill('#securityAnswer', 'Mary');
+    await page.fill('#age', '20');
+    await page.fill('#income', '2400');
     console.log('✓ Form fields filled');
-    
-    // Tick the checkbox
-    const checkbox = page.locator('#useInfoCheckbox');
+
+    // Check the service level agreement checkbox
+    const checkbox = page.locator('#serviceLevelAgreement');
     if (!(await checkbox.isChecked())) {
       await checkbox.check();
     }
     console.log('✓ Checkbox checked');
 
-    // Save changes
-    await page.click('#saveProfileButton');
-    console.log('✓ Save button clicked');
+    // Click submit button
+    await page.click('input[value="Submit"]');
+    console.log('✓ Submit clicked');
 
-    // Assert success message
-    await expect(page.locator('#successMessage')).toHaveText('Profile updated successfully', { timeout: 5000 });
+    // Wait for redirect with success message
+    await page.waitForURL(/goodMsg=/, { timeout: 10000 });
+    await expect(page).toHaveURL(/goodMsg=Successfully/);
     console.log('✓ Profile updated successfully');
-    
-    // Take screenshot after save
+
     await page.screenshot({ path: 'test-results/profile-page-updated.png', fullPage: true });
   });
 
-  test('Personal Information - Edit Profile - password fields should not be visible', async ({ page }) => {
-    console.log('Test: Checking password fields are hidden...');
+  test('Personal Information - Edit Profile - password fields should not be visible in Overview tab', async ({ page }) => {
+    console.log('Test: Checking password fields are hidden in Overview tab...');
     
-    await expect(page.locator('#newPassword')).toBeHidden();
-    await expect(page.locator('#confirmPassword')).toBeHidden();
+    // In Overview tab, password fields should be hidden (they're in Change Password tab)
+    await expect(page.locator('#oldPassword')).toBeHidden();
+    await expect(page.locator('#password')).toBeHidden();
+    await expect(page.locator('#repassword')).toBeHidden();
     console.log('✓ Password fields are hidden as expected');
   });
 
-  // --- Change Password Tests ---
+  // --- Change Password Tests (must open Change Password tab first) ---
+  async function openChangePasswordTab(page) {
+    await page.click('a[href="#changePassword"]');
+    await page.waitForSelector('#oldPassword', { state: 'visible', timeout: 5000 });
+    console.log('✓ Change Password tab opened');
+  }
+
   test('Change Password - mismatched new passwords should show error', async ({ page }) => {
     console.log('Test: Checking password mismatch error...');
-    
+    await openChangePasswordTab(page);
+
     await page.fill('#oldPassword', TEST_PASSWORD);
-    await page.fill('#newPassword', 'newpass1');
-    await page.fill('#confirmPassword', 'newpass2');
-    await page.click('#changePasswordButton');
-    
-    await expect(page.locator('#passwordError')).toHaveText('Passwords do not match', { timeout: 5000 });
+    await page.fill('#password', 'newpass1');
+    await page.fill('#repassword', 'newpass2');
+    await page.click('input[value="Change Password"]');
+
+    // Wait for error modal to appear
+    await expect(page.locator('#changePasswordErrorModal')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#changePasswordErrorMsg')).toContainText(/Passwords do not match/i, { timeout: 3000 });
     console.log('✓ Password mismatch error shown correctly');
+    
+    // Close modal
+    await page.click('#changePasswordErrorModal button[data-dismiss="modal"]');
   });
 
   test('Change Password - incorrect old password should show error', async ({ page }) => {
     console.log('Test: Checking incorrect old password error...');
-    
+    await openChangePasswordTab(page);
+
     await page.fill('#oldPassword', 'wrongpassword');
-    await page.fill('#newPassword', 'newpass123');
-    await page.fill('#confirmPassword', 'newpass123');
-    await page.click('#changePasswordButton');
-    
-    await expect(page.locator('#passwordError')).toHaveText('Old password is incorrect', { timeout: 5000 });
+    await page.fill('#password', 'newpass123');
+    await page.fill('#repassword', 'newpass123');
+    await page.click('input[value="Change Password"]');
+
+    await expect(page.locator('#changePasswordErrorModal')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#changePasswordErrorMsg')).toContainText(/Old password is incorrect/i, { timeout: 3000 });
     console.log('✓ Incorrect old password error shown correctly');
+    
+    // Close modal
+    await page.click('#changePasswordErrorModal button[data-dismiss="modal"]');
   });
 
   test('Change Password - valid password change should succeed', async ({ page }) => {
+    const newPassword = 'NewPass@456';
     console.log('Test: Changing password...');
-    
+    await openChangePasswordTab(page);
+
     await page.fill('#oldPassword', TEST_PASSWORD);
-    await page.fill('#newPassword', 'NewPass@456');
-    await page.fill('#confirmPassword', 'NewPass@456');
-    await page.click('#changePasswordButton');
-    
-    await expect(page.locator('#successMessage')).toHaveText('Password changed successfully', { timeout: 5000 });
+    await page.fill('#password', newPassword);
+    await page.fill('#repassword', newPassword);
+    await page.click('input[value="Change Password"]');
+
+    // Wait for success redirect
+    await page.waitForURL(/goodMsg=Password/, { timeout: 10000 });
+    await expect(page).toHaveURL(/goodMsg=Password/);
     console.log('✓ Password changed successfully');
-    
-    // IMPORTANT: Change it back so other tests can still login
-    console.log('Changing password back to original...');
-    await page.fill('#oldPassword', 'NewPass@456');
-    await page.fill('#newPassword', TEST_PASSWORD);
-    await page.fill('#confirmPassword', TEST_PASSWORD);
-    await page.click('#changePasswordButton');
-    
-    await expect(page.locator('#successMessage')).toHaveText('Password changed successfully', { timeout: 5000 });
+
+    // Verify new password works by logging out and back in
+    console.log('Logging out to verify new password...');
+    await page.click('a:has-text("Logout")');
+    await page.waitForURL(/memberLogin\.html/, { timeout: 5000 });
+    console.log('✓ Logged out');
+
+    console.log('Logging in with new password to verify it works...');
+    await login(page, newPassword);
+    console.log('✓ Logged in with new password');
+
+    // Change password back to original for future test runs
+    console.log('Changing password back to original for future test runs...');
+    await openChangePasswordTab(page);
+    await page.fill('#oldPassword', newPassword);
+    await page.fill('#password', TEST_PASSWORD);
+    await page.fill('#repassword', TEST_PASSWORD);
+    await page.click('input[value="Change Password"]');
+
+    await page.waitForURL(/goodMsg=Password/, { timeout: 10000 });
+    await expect(page).toHaveURL(/goodMsg=Password/);
     console.log('✓ Password restored to original');
   });
 
-  // --- Additional Tests ---
   test('Change Password - old password blank should show error', async ({ page }) => {
     console.log('Test: Checking blank old password error...');
-    
+    await openChangePasswordTab(page);
+
     await page.fill('#oldPassword', '');
-    await page.fill('#newPassword', 'newpass123');
-    await page.fill('#confirmPassword', 'newpass123');
-    await page.click('#changePasswordButton');
-    
-    await expect(page.locator('#passwordError')).toHaveText('Old password is required', { timeout: 5000 });
+    await page.fill('#password', 'newpass123');
+    await page.fill('#repassword', 'newpass123');
+    await page.click('input[value="Change Password"]');
+
+    await expect(page.locator('#changePasswordErrorModal')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#changePasswordErrorMsg')).toContainText(/fill in all password fields/i, { timeout: 3000 });
     console.log('✓ Blank old password error shown correctly');
+    
+    // Close modal
+    await page.click('#changePasswordErrorModal button[data-dismiss="modal"]');
   });
 
   test('Change Password - new password blank should show error', async ({ page }) => {
     console.log('Test: Checking blank new password error...');
-    
+    await openChangePasswordTab(page);
+
     await page.fill('#oldPassword', TEST_PASSWORD);
-    await page.fill('#newPassword', '');
-    await page.fill('#confirmPassword', 'newpass123');
-    await page.click('#changePasswordButton');
-    
-    // This might be "New password is required" or similar - adjust based on your actual error message
-    await expect(page.locator('#passwordError')).toBeVisible({ timeout: 5000 });
+    await page.fill('#password', '');
+    await page.fill('#repassword', 'newpass123');
+    await page.click('input[value="Change Password"]');
+
+    await expect(page.locator('#changePasswordErrorModal')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#changePasswordErrorMsg')).toContainText(/fill in all password fields/i, { timeout: 3000 });
     console.log('✓ Blank new password shows error');
+    
+    // Close modal
+    await page.click('#changePasswordErrorModal button[data-dismiss="modal"]');
   });
 
   test('Change Password - confirm password blank should show error', async ({ page }) => {
     console.log('Test: Checking blank confirm password error...');
-    
+    await openChangePasswordTab(page);
+
     await page.fill('#oldPassword', TEST_PASSWORD);
-    await page.fill('#newPassword', 'newpass123');
-    await page.fill('#confirmPassword', '');
-    await page.click('#changePasswordButton');
-    
-    await expect(page.locator('#passwordError')).toHaveText('Please confirm your new password', { timeout: 5000 });
+    await page.fill('#password', 'newpass123');
+    await page.fill('#repassword', '');
+    await page.click('input[value="Change Password"]');
+
+    await expect(page.locator('#changePasswordErrorModal')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#changePasswordErrorMsg')).toContainText(/fill in all password fields/i, { timeout: 3000 });
     console.log('✓ Blank confirm password error shown correctly');
+    
+    // Close modal
+    await page.click('#changePasswordErrorModal button[data-dismiss="modal"]');
   });
 
   test('Change Password - new password too short should show error', async ({ page }) => {
     console.log('Test: Checking password length validation...');
-    
+    await openChangePasswordTab(page);
+
     await page.fill('#oldPassword', TEST_PASSWORD);
-    await page.fill('#newPassword', '123');
-    await page.fill('#confirmPassword', '123');
-    await page.click('#changePasswordButton');
+    await page.fill('#password', '123');
+    await page.fill('#repassword', '123');
+    await page.click('input[value="Change Password"]');
+
+    await expect(page.locator('#changePasswordErrorModal')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('#changePasswordErrorMsg')).toContainText(/at least 8 characters/i, { timeout: 3000 });
+    console.log('✓ Password too short error shown');
     
-    // Adjust the expected error message based on your validation
-    await expect(page.locator('#passwordError')).toBeVisible({ timeout: 5000 });
-    const errorText = await page.locator('#passwordError').textContent();
-    console.log(`✓ Password too short error shown: "${errorText}"`);
+    // Close modal
+    await page.click('#changePasswordErrorModal button[data-dismiss="modal"]');
   });
 });
