@@ -28,6 +28,9 @@ export default defineConfig({
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:8081',
     trace: 'on-first-retry',
+    // launchOptions: {
+    //   slowMo: 2000, // delays each action by 2000ms (2 seconds)
+    // }
   },
 
   /* Configure projects for major browsers */
