@@ -75,11 +75,11 @@ export default defineConfig({
     // },
   ],
 
-  /* Run your local dev server before starting the tests */
+  /* Start server manually: npm start (port 8081) */
   // webServer: {
   //   command: 'npm run start',
-  //   url: 'http://localhost:3000',
+  //   url: 'http://localhost:8081',
   //   reuseExistingServer: !process.env.CI,
+  //   timeout: 15000,
   // },
 });
-

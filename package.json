@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "npx playwright test",
-    "test:sales-history": "node -e \"var v=process.versions.node.split('.');if(parseInt(v[0],10)<18){console.error('Playwright needs Node.js 18+. You have', process.versions.node, '- install from https://nodejs.org');process.exit(1);}\" && npx playwright test tests/salesHistory.spec.js"
+    "test:profile": "npx playwright test tests/profile-changepass.spec.js --workers=1",
+    "test:sales-history": "npx playwright test tests/salesHistory.spec.js"
   },
   "repository": {
     "type": "git",
