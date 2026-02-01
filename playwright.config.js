@@ -32,6 +32,9 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+    // launchOptions: {
+    //   slowMo: 2000, // delays each action by 2000ms (2 seconds)
+    // }
   },
 
   /* Configure projects for major browsers */
