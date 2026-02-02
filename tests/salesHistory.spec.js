@@ -19,7 +19,7 @@ import { test, expect } from '@playwright/test';
 const COUNTRY_PREFIX = 'SG';
 
 // Replace with your activated test member account
-const TEST_MEMBER_EMAIL = 'tom@lol.com';
+const TEST_MEMBER_EMAIL = 'jc@lol.com';
 const TEST_MEMBER_PASSWORD = '12345678';
 
 test.describe('Sales History', () => {
